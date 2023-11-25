@@ -4,7 +4,7 @@ import cv2
 import time
 import PIL
 
-PAGE_TITLE = "Image Segmentation with Streamlit"
+PAGE_TITLE = "imaginary_units@PFUR/map-segmentation"
 
 import modelst as model
 
@@ -39,30 +39,40 @@ def overlay(image, mask, color, alpha, resize=None):
     return image_combined
 
 def main():
+    print("hit", time.ctime())
     st.set_page_config(page_title=PAGE_TITLE, layout="wide")
     st.title(PAGE_TITLE)
+    st.link_button("View on GitHub", "https://github.com/imaginary-units-pfur/map-segmentation")
+    if 'segments' not in st.session_state:
+        st.session_state.segments = None
     uploaded_file = st.file_uploader("Choose a file")
     if uploaded_file is not None:
         # To read file as bytes:
         bytes_data = uploaded_file.getvalue()
         src_image = model.img_from_bytes(bytes_data, None)[0]
         if st.button('Run Segmentation'):
+            print("Running segmentation: ", time.time())
+            st.session_state.segments = None
             start_time_1 = time.time()
-            st.write("Started at: " + str(start_time_1))
+            st.write("Started at: ", start_time_1)
             instance_image = model.segment(bytes_data)
             end_time_1 = time.time() - start_time_1
-            st.image(instance_image, width=128, caption="Raw segmentation")
-            png = cv2.imencode(".png", instance_image)[1].tobytes()
-            st.download_button("Download mask as PNG", png, 'mask.png', 'image/png')
+            st.session_state.segments = instance_image
+            st.write("Time taken:", end_time_1)
+            print("Time taken: ", end_time_1)
 
+        if st.session_state.segments is not None:
+            instance_image = st.session_state.segments
 
             overlaid = overlay(src_image, instance_image, (255,0,0), 0.5)
             st.image(overlaid, caption="Overlay", width=1024, clamp=True)
             png = cv2.imencode(".png", overlaid)[1].tobytes()
             st.download_button("Download overlay as PNG", png, 'overlay.png', 'image/png')
 
+            st.image(instance_image, width=128, caption="Raw segmentation")
+            png = cv2.imencode(".png", instance_image)[1].tobytes()
+            st.download_button("Download mask as PNG", png, 'mask.png', 'image/png')
 
-            st.write(end_time_1)
 
 
 
