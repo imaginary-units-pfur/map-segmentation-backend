@@ -5,3 +5,4 @@ opencv-python
 torch
 segmentation_models_pytorch
 pillow
+ttach
